@@ -1,3 +1,4 @@
 python-dotenv~=0.18.0
 requests~=2.26.0
 pysimplegui~=4.47.0
+openpyxl~=3.0.8

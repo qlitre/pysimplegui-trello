@@ -1,12 +1,13 @@
 import openpyxl
 from datetime import datetime
+from typing import List
 
 
-def export_excel(trello_client, board_name):
-    # ボードIDの取得
-    board_id = trello_client.get_board_id(board_name=board_name)
-    # ボードに紐づくリストidとリスト名を取得
-    list_ids_and_names = trello_client.get_list_ids_and_names(board_id)
+def export_excel(trello_client,
+                 board_name: str,
+                 list_ids: List,
+                 list_names: List,
+                 save_dir: str):
     # excelの新規作成
     wb = openpyxl.Workbook()
     sheet = wb.active
@@ -15,7 +16,7 @@ def export_excel(trello_client, board_name):
     sheet.cell(row=1, column=3).value = 'desc'
     sheet.cell(row=1, column=4).value = 'due'
 
-    for list_id, list_name in list_ids_and_names:
+    for list_id, list_name in zip(list_ids, list_names):
         cards_in_list = trello_client.get_cards_in_list(list_id)
         for card in cards_in_list:
             # 書きこむ行を取得
@@ -28,8 +29,8 @@ def export_excel(trello_client, board_name):
 
     # 現在時刻から保存ファイル名を生成
     now = datetime.now()
-    file_name = f'{now.year}_{now.month}_{now.day}_{now.hour}_{now.minute}_{now.second}.xlsx'
-    wb.save(file_name)
+    file_name = f'{now.year}_{now.month}_{now.day}_{now.hour}_{now.minute}_{now.second}_{board_name}.xlsx'
+    wb.save(f'{save_dir}/{file_name}')
 
 
 """

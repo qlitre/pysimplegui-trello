@@ -19,7 +19,7 @@ class TrelloGui:
 
         # windowのインスタンス化
         self.window = sg.Window('for Trello...',
-                                size=(560, 560),
+                                size=(600, 600),
                                 finalize=True
                                 ).Layout(layout.trello_gui_layout(self.board_names))
 
@@ -45,8 +45,13 @@ class TrelloGui:
     def set_trello_list_ids(self, ids_and_names):
         self._trello_list_ids = [list_id for list_id, name in ids_and_names]
 
-    def event_loop(self):
+    def debug_print(self, msg):
+        """
+        debug print エリアにメッセージを出力
+        """
+        self.window['DEBUG_PRINT'].print(msg)
 
+    def event_loop(self):
         while True:
             event, values = self.window.read()
             if event is None:
@@ -73,36 +78,60 @@ class TrelloGui:
 
             # カードを追加します
             if event == 'ADD_CARD':
-                card_name = values['CARD_NAME']
-                desc = values['DESC']
-                due_date = values['DUE_DATE']
-                due_time = values['DUE_TIME']
-                self.client.add_task(self._trello_list_id, card_name, due_date, due_time, desc)
+                if not self._trello_list_id:
+                    sg.Popup('', '追加するリストを選択してください')
+                elif not values['CARD_NAME']:
+                    sg.Popup('', 'カード名は必須です')
+                else:
+                    card_name = values['CARD_NAME']
+                    desc = values['DESC']
+                    due_date = values['DUE_DATE']
+                    due_time = values['DUE_TIME']
+                    self.client.add_task(self._trello_list_id, card_name, due_date, due_time, desc)
+
+                    self.debug_print(f'カードの追加に成功しました。')
 
             # 選択されているボードの全カードを出力します
             if event == 'ALL_LIST_PRINT':
-                preview_text = ''
-                for list_id, list_name in zip(self._trello_list_ids, self._trello_list_names):
-                    json_data = self.client.get_cards_in_list(list_id)
-                    preview_text += f'=====\n{list_name}\n=====\n'
-                    for json in json_data:
-                        card_name = json['name']
-                        preview_text += f'{card_name}\n---\n'
-                self.window['PREVIEW'].Update(preview_text)
+                if self._trello_borad_name:
+                    preview_text = ''
+                    for list_id, list_name in zip(self._trello_list_ids, self._trello_list_names):
+                        json_data = self.client.get_cards_in_list(list_id)
+                        preview_text += f'=====\n{list_name}\n=====\n'
+                        for json in json_data:
+                            card_name = json['name']
+                            preview_text += f'{card_name}\n---\n'
+                    self.window['PREVIEW'].Update(preview_text)
+                else:
+                    sg.Popup('', 'ボードを選択してください')
 
             # 選択されているTrelloリストのカードを出力します
             if event == 'SELECTED_LIST_PRINT':
-                preview_text = ''
-                list_name = values['LIST_NAME']
-                preview_text += f'=====\n{list_name}\n=====\n'
-                json_data = self.client.get_cards_in_list(self._trello_list_id)
-                for json in json_data:
-                    card_name = json['name']
-                    preview_text += f'{card_name}\n---\n'
-                self.window['PREVIEW'].Update(preview_text)
+                if values['LIST_NAME']:
+                    preview_text = ''
+                    list_name = values['LIST_NAME']
+                    preview_text += f'=====\n{list_name}\n=====\n'
+                    json_data = self.client.get_cards_in_list(self._trello_list_id)
+                    for json in json_data:
+                        card_name = json['name']
+                        preview_text += f'{card_name}\n---\n'
+                    self.window['PREVIEW'].Update(preview_text)
+                else:
+                    sg.Popup('', 'リストを選択してください')
 
+            # 選択されているボードをExcelにエクスポートします
             if event == 'EXPORT':
-                excel.export_excel(self.client, self._trello_borad_name)
+                if self._trello_borad_name:
+                    excel.export_excel(trello_client=self.client,
+                                       board_name=self._trello_borad_name,
+                                       list_ids=self._trello_list_ids,
+                                       list_names=self._trello_list_names,
+                                       save_dir=BASE_DIR)
+
+                    self.debug_print(f'exportに成功しました。')
+                    
+                else:
+                    sg.Popup('', 'ボードを選択してください')
 
 
 def job():

@@ -129,10 +129,12 @@ class TrelloGui:
                                        save_dir=BASE_DIR)
 
                     self.debug_print(f'exportに成功しました。')
-                    
+
                 else:
                     sg.Popup('', 'ボードを選択してください')
 
+            if event == 'CLEAR_DEBUG':
+                self.window['DEBUG_PRINT'].update(value='')
 
 def job():
     user_id = settings.TRELLO_USER_ID

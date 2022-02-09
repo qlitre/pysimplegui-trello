@@ -5,14 +5,14 @@ from datetime import timedelta
 
 class TrelloClient:
 
-    def __init__(self, user_id, key, secret, token):
+    def __init__(self, user_id: str, key: str, secret: str, token: str):
         self.user_id = user_id
         self.key = key
         self.secret = secret
         self.token = token
         self.URL = 'https://trello.com/1/'
 
-    def get_board_id(self, board_name):
+    def get_board_id(self, board_name: str):
         """
         ボード名からボードidを特定する
         """
@@ -30,7 +30,7 @@ class TrelloClient:
         json_data = requests.get(self.URL + end_point).json()
         return [json['name'] for json in json_data]
 
-    def get_list_id(self, board_id, list_name):
+    def get_list_id(self, board_id: str, list_name: str):
         """
         ボードidとTrelloリスト名からTrelloリストidを特定して返す
         """
@@ -40,7 +40,7 @@ class TrelloClient:
             if json['name'] == list_name:
                 return json['id']
 
-    def get_list_ids_and_names(self, board_id):
+    def get_list_ids_and_names(self, board_id: str):
         """
         idとnameがタプルになったリストを返す
         """
@@ -48,7 +48,7 @@ class TrelloClient:
         json_data = requests.get(self.URL + end_point).json()
         return [(json['id'], json['name']) for json in json_data]
 
-    def add_task(self, list_id, card_name, due_date=None, due_time=None, desc=None):
+    def add_task(self, list_id: str, card_name: str, due_date: str = None, due_time: str = None, desc: str = None):
         """
         カードを特定のリストに追加する
         """
@@ -89,7 +89,7 @@ class TrelloClient:
 
         return response.json()
 
-    def create_new_trello_list(self, board_id, list_name):
+    def create_new_trello_list(self, board_id: str, list_name: str):
         """
         ボードidとリスト名を指定して、新しいリストを作ります。
         """
@@ -110,7 +110,7 @@ class TrelloClient:
 
         return response.text
 
-    def create_new_trello_board(self, board_name):
+    def create_new_trello_board(self, board_name: str):
         end_point = "boards/"
 
         query = {
